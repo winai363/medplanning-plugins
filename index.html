@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedPlanning Plugins — Claude Code MCP Extensions</title>
+  <meta name="description" content="MCP Plugins สำหรับ Claude Code โดย MedPlanning — ระบบจัดตารางเวรแพทย์และใบเสนอราคาภาษาไทย" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy:   #1B4F72;
+      --blue:   #2E86C1;
+      --green:  #27AE60;
+      --text:   #1C2833;
+      --muted:  #566573;
+      --bg:     #F4F6F7;
+      --white:  #FFFFFF;
+      --border: #D5D8DC;
+      --code-bg:#EBF5FB;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Sarabun', 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ── Nav ── */
+    nav {
+      background: var(--navy);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,.25);
+    }
+    .nav-brand {
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: .3px;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .nav-brand .dot { color: var(--green); font-size: 1.4rem; }
+    .nav-links { display: flex; gap: 1.5rem; }
+    .nav-links a {
+      color: rgba(255,255,255,.75);
+      text-decoration: none;
+      font-size: .9rem;
+      font-weight: 500;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: #fff; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 0%, #154360 60%, #1a6b8a 100%);
+      color: #fff;
+      padding: 5rem 2rem 4rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 70% 50%, rgba(39,174,96,.12) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 80%, rgba(46,134,193,.15) 0%, transparent 50%);
+    }
+    .hero-content { position: relative; max-width: 760px; margin: 0 auto; }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 100px;
+      padding: .3rem .9rem;
+      font-size: .8rem;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      color: rgba(255,255,255,.9);
+    }
+    .hero-badge span { color: var(--green); font-size: 1rem; }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 1.2rem;
+    }
+    .hero h1 em { color: #7DCEA0; font-style: normal; }
+    .hero p {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,.8);
+      max-width: 580px;
+      margin: 0 auto 2.5rem;
+    }
+    .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .7rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: .95rem;
+      text-decoration: none;
+      transition: all .2s;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-primary:hover { background: #219a52; transform: translateY(-1px); }
+    .btn-outline { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.4); }
+    .btn-outline:hover { border-color: #fff; background: rgba(255,255,255,.08); }
+
+    /* ── Stats bar ── */
+    .stats {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--navy); }
+    .stat-label { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+
+    /* ── Section ── */
+    .section { padding: 4rem 2rem; max-width: 1100px; margin: 0 auto; }
+    .section-tag {
+      display: inline-block;
+      background: var(--code-bg);
+      color: var(--blue);
+      border: 1px solid #AED6F1;
+      border-radius: 6px;
+      padding: .25rem .7rem;
+      font-size: .78rem;
+      font-weight: 600;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      margin-bottom: .75rem;
+    }
+    .section h2 {
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: .6rem;
+    }
+    .section-sub { color: var(--muted); font-size: 1rem; margin-bottom: 2.5rem; }
+
+    /* ── Plugin cards ── */
+    .plugins-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 2rem; }
+
+    .plugin-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 16px rgba(0,0,0,.06);
+      transition: box-shadow .25s, transform .25s;
+    }
+    .plugin-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,.12); transform: translateY(-3px); }
+
+    .card-header {
+      padding: 1.75rem 1.75rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+    }
+    .icon-blue  { background: #EBF5FB; }
+    .icon-green { background: #EAFAF1; }
+
+    .card-title { font-size: 1.25rem; font-weight: 700; color: var(--navy); margin-bottom: .3rem; }
+    .card-title code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .95rem;
+      background: var(--code-bg);
+      padding: .1rem .4rem;
+      border-radius: 5px;
+      color: var(--blue);
+    }
+    .card-desc { color: var(--muted); font-size: .95rem; }
+
+    .card-body { padding: 1.5rem 1.75rem; }
+    .card-meta { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      padding: .2rem .65rem;
+      border-radius: 100px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+    .tag-blue  { background: #EBF5FB; color: var(--blue); border: 1px solid #AED6F1; }
+    .tag-green { background: #EAFAF1; color: var(--green); border: 1px solid #A9DFBF; }
+    .tag-gray  { background: #F2F3F4; color: var(--muted); border: 1px solid var(--border); }
+
+    .tools-list { display: grid; gap: .65rem; }
+    .tool-item {
+      display: flex;
+      align-items: flex-start;
+      gap: .75rem;
+      padding: .75rem 1rem;
+      background: var(--bg);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .tool-icon { color: var(--blue); font-size: 1rem; margin-top: .1rem; flex-shrink: 0; }
+    .tool-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--navy);
+      white-space: nowrap;
+    }
+    .tool-desc { font-size: .85rem; color: var(--muted); margin-top: .15rem; }
+
+    .card-footer {
+      padding: 1.25rem 1.75rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+    .btn-sm {
+      padding: .45rem 1rem;
+      font-size: .85rem;
+      border-radius: 7px;
+    }
+    .btn-navy { background: var(--navy); color: #fff; }
+    .btn-navy:hover { background: #154360; }
+
+    /* ── Install section ── */
+    .install-section { background: var(--white); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .install-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); overflow-x: auto; }
+    .tab-btn {
+      padding: .75rem 1.25rem;
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      transition: all .2s;
+      font-family: 'Sarabun', sans-serif;
+    }
+    .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+    .tab-content { display: none; padding: 1.75rem 0; }
+    .tab-content.active { display: block; }
+
+    .code-block {
+      background: #1C2833;
+      color: #ECF0F1;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem;
+      line-height: 1.7;
+      overflow-x: auto;
+      position: relative;
+    }
+    .code-block .kw  { color: #85C1E9; }
+    .code-block .str { color: #A9DFBF; }
+    .code-block .key { color: #F8C471; }
+    .code-block .cmt { color: #7F8C8D; }
+
+    /* ── Feature list ── */
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+    .feature-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .feature-icon {
+      width: 42px; height: 42px;
+      background: var(--code-bg);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .feature-title { font-weight: 700; color: var(--navy); margin-bottom: .3rem; font-size: .95rem; }
+    .feature-desc  { font-size: .85rem; color: var(--muted); }
+
+    /* ── CTA ── */
+    .cta {
+      background: linear-gradient(135deg, var(--navy), #1a6b8a);
+      color: #fff;
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+    .cta h2 { font-size: 2rem; margin-bottom: .75rem; }
+    .cta p  { color: rgba(255,255,255,.75); margin-bottom: 2rem; font-size: 1rem; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--text);
+      color: rgba(255,255,255,.5);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: .82rem;
+    }
+    footer a { color: rgba(255,255,255,.7); text-decoration: none; }
+    footer a:hover { color: #fff; }
+
+    @media (max-width: 600px) {
+      .plugins-grid { grid-template-columns: 1fr; }
+      .stats { gap: 1.5rem; }
+      nav { padding: 0 1rem; }
+      .nav-links { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav>
+  <div class="nav-brand">
+    <span class="dot">⬡</span> MedPlanning Plugins
+  </div>
+  <div class="nav-links">
+    <a href="#plugins">Plugins</a>
+    <a href="#install">ติดตั้ง</a>
+    <a href="https://github.com/winai363" target="_blank">GitHub ↗</a>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge"><span>●</span> MCP Plugins for Claude Code</div>
+    <h1>Plugins ที่สร้างมา<br/><em>เพื่อวงการสาธารณสุขไทย</em></h1>
+    <p>เครื่องมือ MCP (Model Context Protocol) สำหรับ Claude Code ที่ช่วยให้ทีม MedPlanning ทำงานได้เร็วขึ้น — ตั้งแต่ติดตามข่าวสารจนถึงออกเอกสารใบเสนอราคาภาษาไทยมาตรฐาน</p>
+    <div class="hero-actions">
+      <a href="#plugins" class="btn btn-primary">ดู Plugins</a>
+      <a href="#install" class="btn btn-outline">วิธีติดตั้ง</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats ── -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-value">2</div>
+    <div class="stat-label">MCP Plugins</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">12</div>
+    <div class="stat-label">Tools</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">5+</div>
+    <div class="stat-label">แหล่งข่าว</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">MIT</div>
+    <div class="stat-label">License</div>
+  </div>
+</div>
+
+<!-- ── Plugins ── -->
+<section class="section" id="plugins">
+  <div class="section-tag">Plugins</div>
+  <h2>MCP Plugins ทั้งหมด</h2>
+  <p class="section-sub">ทำงานร่วมกับ Claude Code Desktop และ Claude Code CLI ผ่าน Model Context Protocol</p>
+
+  <div class="plugins-grid">
+
+    <!-- MedPlanSearch -->
+    <div class="plugin-card">
+      <div class="card-header">
+        <div class="card-icon icon-blue">📡</div>
+        <div class="card-title"><code>MedPlanSearch</code></div>
+        <div class="card-desc">ดึงข่าวสารล่าสุดเกี่ยวกับระบบจัดตารางเวรแพทย์และ Healthcare Workforce Management แบบ real-time จากแหล่งข่าวระดับนานาชาติและไทย</div>
+      </div>
+      <div class="card-body">
+        <div class="card-meta">
+          <span class="tag tag-blue">Healthcare IT</span>
+          <span class="tag tag-green">RSS Feed</span>
+          <span class="tag tag-gray">Node.js</span>
+          <span class="tag tag-gray">v1.0.0</span>
+        </div>
+        <div class="tools-list">
+          <div class="tool-item">
+            <div class="tool-icon">⚡</div>
+            <div>
+              <div class="tool-name">get_latest_news</div>
+              <div class="tool-desc">ดึงข่าวล่าสุด กรองตามหมวด: Healthcare IT, Thai Health, HR Tech</div>
+            </div>
+          </div>
+          <div class="tool-item">
+            <div class="tool-icon">🔍</div>
+            <div>
+              <div class="tool-name">search_news</div>
+              <div class="tool-desc">ค้นข่าวด้วยคำค้น ทั้งภาษาไทยและอังกฤษ เช่น "doctor burnout"</div>
+            </div>
+          </div>
+          <div class="tool-item">
+            <div class="tool-icon">📊</div>
+            <div>
+              <div class="tool-name">get_trends</div>
+              <div class="tool-desc">วิเคราะห์ Trending Topics ในวงการ Healthcare Workforce</div>
+            </div>
+          </div>
+          <div class="tool-item">
+            <div class="tool-icon">📋</div>
+            <div>
+              <div class="tool-name">list_sources</div>
+              <div class="tool-desc">แสดงแหล่งข่าวทั้งหมดที่ plugin ติดตามอยู่ (5+ แหล่ง)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <a href="https://github.com/winai363/MedPlanSearch" target="_blank" class="btn btn-sm btn-navy">GitHub ↗</a>
+        <a href="#install-medplan" class="btn btn-sm btn-outline btn-navy" onclick="setTab('medplan')">ดูวิธีติดตั้ง</a>
+      </div>
+    </div>
+
+    <!-- thai-quote-docs -->
+    <div class="plugin-card">
+      <div class="card-header">
+        <div class="card-icon icon-green">📄</div>
+        <div class="card-title"><code>thai-quote-docs</code></div>
+        <div class="card-desc">สร้างและจัดการใบเสนอราคาภาษาไทยมาตรฐาน พร้อม VAT 7%, เลขที่อัตโนมัติ, แปลงเงินเป็นตัวอักษรไทย และวันที่พุทธศักราช</div>
+      </div>
+      <div class="card-body">
+        <div class="card-meta">
+          <span class="tag tag-green">Thai Business</span>
+          <span class="tag tag-blue">B2B Docs</span>
+          <span class="tag tag-gray">Node.js</span>
+          <span class="tag tag-gray">v1.0.0</span>
+        </div>
+        <div class="tools-list">
+          <div class="tool-item">
+            <div class="tool-icon">✏️</div>
+            <div>
+              <div class="tool-name">create_quotation</div>
+              <div class="tool-desc">สร้างใบเสนอราคาใหม่พร้อมผู้ขาย ลูกค้า และรายการสินค้า/บริการ</div>
+            </div>
+          </div>
+          <div class="tool-item">
+            <div class="tool-icon">💰</div>
+            <div>
+              <div class="tool-name">calculate_totals</div>
+              <div class="tool-desc">คำนวณ subtotal, VAT 7%, และยอดสุทธิอัตโนมัติ</div>
+            </div>
+          </div>
+          <div class="tool-item">
+            <div class="tool-icon">🔤</div>
+            <div>
+              <div class="tool-name">convert_amount_to_thai_text</div>
+              <div class="tool-desc">แปลงตัวเลขเป็นตัวอักษรไทย เช่น "หนึ่งแสนห้าหมื่นบาทถ้วน"</div>
+            </div>
+          </div>
+          <div class="tool-item">
+            <div class="tool-icon">➕</div>
+            <div>
+              <div class="tool-name">add_line_item / remove_line_item</div>
+              <div class="tool-desc">เพิ่มหรือลบรายการสินค้าจากใบเสนอราคาที่มีอยู่</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <a href="https://github.com/winai363/thai-quote-docs" target="_blank" class="btn btn-sm btn-navy">GitHub ↗</a>
+        <a href="#install" class="btn btn-sm btn-outline btn-navy" onclick="setTab('thai')">ดูวิธีติดตั้ง</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Features ── -->
+<section style="background: var(--white); border-top: 1px solid var(--border);">
+  <div class="section">
+    <div class="section-tag">Features</div>
+    <h2>ทำไมต้องใช้ Plugins เหล่านี้?</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🏥</div>
+        <div>
+          <div class="feature-title">เฉพาะวงการสาธารณสุขไทย</div>
+          <div class="feature-desc">ออกแบบมาสำหรับทีม MedPlanning — ข่าวสาร, ศัพท์เทคนิค และรูปแบบเอกสารที่ตรงกับบริบทโรงพยาบาลไทย</div>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div>
+          <div class="feature-title">ทำงานใน Claude Code ได้เลย</div>
+          <div class="feature-desc">เป็น MCP Server มาตรฐาน — เรียกใช้ tool ได้ตรงจาก Claude โดยไม่ต้องเปลี่ยน context</div>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🇹🇭</div>
+        <div>
+          <div class="feature-title">รองรับภาษาไทยครบถ้วน</div>
+          <div class="feature-desc">วันที่พุทธศักราช, ตัวอักษรแทนจำนวนเงิน, รูปแบบใบเสนอราคาตามมาตรฐานภาษีไทย</div>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔓</div>
+        <div>
+          <div class="feature-title">Open Source — MIT License</div>
+          <div class="feature-desc">ใช้งานได้ฟรี ปรับแก้ได้ตามต้องการ พร้อม source code บน GitHub</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Install ── -->
+<section class="install-section" id="install">
+  <div class="section">
+    <div class="section-tag">Installation</div>
+    <h2>วิธีติดตั้ง</h2>
+    <p class="section-sub">เลือก plugin และวิธีติดตั้งที่ต้องการ</p>
+
+    <div class="install-tabs">
+      <button class="tab-btn active" onclick="setTab('medplan')">📡 MedPlanSearch</button>
+      <button class="tab-btn" onclick="setTab('thai')">📄 thai-quote-docs</button>
+    </div>
+
+    <!-- MedPlanSearch -->
+    <div class="tab-content active" id="tab-medplan">
+      <p style="margin-bottom:1.25rem; color: var(--muted); font-size:.95rem;">
+        ติดตั้งผ่าน Claude Code Plugin Marketplace — Claude Code จะ clone repo และตั้งค่า MCP server อัตโนมัติ
+      </p>
+      <p style="margin-bottom:.75rem; font-weight:600; color: var(--navy);">1. เพิ่ม marketplace ใน settings.json:</p>
+      <div class="code-block">
+<span class="cmt">// ~/.claude/settings.json</span>
+{
+  <span class="key">"extraKnownMarketplaces"</span>: {
+    <span class="key">"medplansearch"</span>: {
+      <span class="key">"source"</span>: {
+        <span class="key">"source"</span>: <span class="str">"github"</span>,
+        <span class="key">"repo"</span>: <span class="str">"winai363/MedPlanSearch"</span>
+      }
+    }
+  }
+}
+      </div>
+
+      <p style="margin-top:1.5rem; margin-bottom:.75rem; font-weight:600; color: var(--navy);">2. ติดตั้ง plugin:</p>
+      <div class="code-block">
+<span class="cmt"># ใน Claude Code terminal</span>
+/marketplace add winai363/MedPlanSearch
+/plugin install medplansearch
+      </div>
+
+      <p style="margin-top:1.5rem; margin-bottom:.75rem; font-weight:600; color: var(--navy);">หรือ ใช้ .mcp.json แบบ manual:</p>
+      <div class="code-block">
+{
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"MedPlanSearch"</span>: {
+      <span class="key">"command"</span>: <span class="str">"node"</span>,
+      <span class="key">"args"</span>: [<span class="str">"/path/to/MedPlanSearch/server.js"</span>]
+    }
+  }
+}
+      </div>
+    </div>
+
+    <!-- thai-quote-docs -->
+    <div class="tab-content" id="tab-thai">
+      <p style="margin-bottom:1.25rem; color: var(--muted); font-size:.95rem;">
+        ติดตั้งผ่าน npx หรือ npm — ไม่ต้อง clone repo เอง
+      </p>
+      <p style="margin-bottom:.75rem; font-weight:600; color: var(--navy);">วิธีที่ 1 — ผ่าน npx (แนะนำ):</p>
+      <div class="code-block">
+<span class="cmt">// .mcp.json หรือ claude_desktop_config.json</span>
+{
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"thai-quote-docs"</span>: {
+      <span class="key">"command"</span>: <span class="str">"npx"</span>,
+      <span class="key">"args"</span>: [<span class="str">"-y"</span>, <span class="str">"thai-quote-docs"</span>]
+    }
+  }
+}
+      </div>
+
+      <p style="margin-top:1.5rem; margin-bottom:.75rem; font-weight:600; color: var(--navy);">วิธีที่ 2 — ติดตั้ง global:</p>
+      <div class="code-block">
+npm install -g thai-quote-docs
+      </div>
+      <div class="code-block" style="margin-top:.75rem;">
+{
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"thai-quote-docs"</span>: {
+      <span class="key">"command"</span>: <span class="str">"thai-quote-docs"</span>
+    }
+  }
+}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta">
+  <h2>พร้อมเริ่มใช้งานแล้วหรือยัง?</h2>
+  <p>ดู source code, ร่วมพัฒนา หรือรายงาน issue ได้ที่ GitHub</p>
+  <div class="hero-actions">
+    <a href="https://github.com/winai363/MedPlanSearch" target="_blank" class="btn btn-primary">MedPlanSearch ↗</a>
+    <a href="https://github.com/winai363/thai-quote-docs" target="_blank" class="btn btn-outline">thai-quote-docs ↗</a>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <p>Built with ❤️ by <a href="https://github.com/winai363" target="_blank">winai363</a> ·
+  <a href="https://github.com/winai363/MedPlanSearch" target="_blank">MedPlanSearch</a> ·
+  <a href="https://github.com/winai363/thai-quote-docs" target="_blank">thai-quote-docs</a> ·
+  MIT License</p>
+</footer>
+
+<script>
+  function setTab(id) {
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && id === 'medplan') || (i === 1 && id === 'thai'));
+    });
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    document.getElementById('install').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+</script>
+</body>
+</html>
